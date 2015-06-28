@@ -8,18 +8,16 @@ var path = require('path');
 
 
 // Load plugins
+var reactify = require('reactify');
 var $ = require('gulp-load-plugins')();
 var browserify = require('browserify');
 var watchify = require('watchify');
 var source = require('vinyl-source-stream'),
 
-    sourceFile = './client/scripts/app.js',
+    sourceFile = './client/app.js',
 
-    destFolder = './dist/scripts',
+    destFolder = './dist',
     destFileName = 'app.js';
-
-var browserSync = require('browser-sync');
-var reload = browserSync.reload;
 
 // Styles
 gulp.task('styles', ['sass']);
@@ -46,6 +44,7 @@ gulp.task('stylus', function() {
 
 
 var bundler = watchify(browserify({
+    transform: reactify,
     entries: [sourceFile],
     debug: true,
     insertGlobals: true,
@@ -63,9 +62,6 @@ function rebundle() {
         .on('error', $.util.log.bind($.util, 'Browserify Error'))
         .pipe(source(destFileName))
         .pipe(gulp.dest(destFolder))
-        .on('end', function() {
-            reload();
-        });
 }
 
 // Scripts
@@ -73,9 +69,10 @@ gulp.task('scripts', rebundle);
 
 gulp.task('buildScripts', function() {
     return browserify(sourceFile)
+        .transform(reactify)
         .bundle()
         .pipe(source(destFileName))
-        .pipe(gulp.dest('dist/scripts'));
+        .pipe(gulp.dest('dist'));
 });
 
 
@@ -100,7 +97,7 @@ gulp.task('fonts', function() {
 // Clean
 gulp.task('clean', function(cb) {
     $.cache.clearAll();
-    cb(del.sync(['dist/styles', 'dist/scripts']));
+    cb(del.sync(['dist/styles', 'dist']));
 });
 
 // Bundle
@@ -130,10 +127,10 @@ gulp.task('bower', function() {
 });
 
 gulp.task('json', function() {
-    gulp.src('client/scripts/json/**/*.json', {
-            base: 'client/scripts'
+    gulp.src('client/json/**/*.json', {
+            base: 'client'
         })
-        .pipe(gulp.dest('dist/scripts/'));
+        .pipe(gulp.dest('dist/'));
 });
 
 // Robots.txt and favicon.ico
@@ -146,23 +143,10 @@ gulp.task('extras', function() {
 // Watch
 gulp.task('watch', ['html', 'fonts', 'bundle'], function() {
 
-    browserSync({
-        notify: true,
-        logPrefix: 'BS',
-        // Run as an https by uncommenting 'https: true'
-        // Note: this uses an unsigned certificate which on first access
-        //       will present a certificate warning in the browser.
-        // https: true,
-        server: ['dist', 'app']
-    });
-
-    // Watch .json files
-    gulp.watch('client/scripts/**/*.json', ['json']);
-
     // Watch .html files
-    gulp.watch('client/*.html', ['html']);
+    gulp.watch(['client/*.html'], ['html']);
 
-    gulp.watch(['client/styles/**/*.scss'], ['styles', reload]);
+    gulp.watch(['client/styles/**/*.scss'], ['styles']);
 
     
 });
@@ -173,10 +157,10 @@ gulp.task('serve', ['watch'], new Function());
 
 // Build
 gulp.task('build', ['html', 'buildBundle', 'fonts', 'extras'], function() {
-    gulp.src('dist/scripts/app.js')
+    gulp.src('dist/app.js')
         .pipe($.uglify())
         .pipe($.stripDebug())
-        .pipe(gulp.dest('dist/scripts'));
+        .pipe(gulp.dest('dist'));
 });
 
 // Default task

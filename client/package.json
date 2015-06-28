@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "dependencies": {
     "react": "^0.13.3",
-    "rxflux": "0.0.2",
+    "rxflux": "0.0.4",
     "socket.io-client": "^1.3.5",
     "superagent": "^1.2.0"
   },

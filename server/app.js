@@ -3,6 +3,11 @@
 var express = require('express');
 var app = express();
 var server = require('http').createServer();
+var request = require('request');
+var progress = require('request-progress');
+var zlib = require('zlib');
+var tar = require('tar-fs');
+var fs = require('fs');
 
 var io = require('socket.io')(server);
 
@@ -17,11 +22,16 @@ var docker = new Docker({
 });
 
 
+//
+//docker.buildImage('test-repo/Dockerfile', {t: 'test-image'}, function (err, response){
+//    console.log(arguments)
+//});
+
+
 var GITHUB_CLIENT = process.env.GITHUB_CLIENT;
 var GITHUB_SECRET = process.env.GITHUB_SECRET;
 
-var client = false;
-var GithubToken = '255efb299767f3c5b9e0f76c3455511915bbd47c';
+var GithubToken = false;
 var Store = {}
 
 MongoClient.connect('mongodb://127.0.0.1:27017/', function(err, db) {
@@ -34,6 +44,8 @@ MongoClient.connect('mongodb://127.0.0.1:27017/', function(err, db) {
 
 
 function GithubClient() {
+    
+    console.log(GithubToken)
 
     return new Promise(function(resolve, reject) {
 
@@ -43,6 +55,68 @@ function GithubClient() {
         resolve(Github.client(GithubToken));
     })
 }
+
+
+app.get('/api/commits', function(req, res){
+
+    GithubClient()
+        .then(function(client) {
+
+            client.repo(req.query.name).commits(function(err, commits) {
+
+                res.send(JSON.stringify({
+                    status: 'success',
+                    data: commits
+                }));
+            });
+        })
+        .catch(function() {
+            res.send(JSON.stringify({
+                status: 'error'
+            }));
+        })
+});
+
+app.get('/api/build', function(req, res) {
+    
+    GithubClient()
+        .then(function(client) {
+
+            client.repo(req.query.name).archive('tarball', function(err, url) {
+
+                console.log(url)    
+
+                progress(
+                    request(url)
+                )
+                .on('progress', function (state) {
+                    console.log('total size in bytes', state.total);
+                    console.log('received size in bytes', state.received);
+                    console.log('percent', state.percent);
+                })
+                .on('error', function (err) {
+                    console.log(err) 
+                })
+                .pipe(zlib.createGunzip())
+                .pipe(tar.extract('./build/'))
+                .on('error', function (err) {
+                    console.log(err)
+                })
+                .on('close', function (err) {
+                    console.log(arguments)
+                });
+                
+                res.send(JSON.stringify({
+                    status: 'success'
+                }));
+            });
+        })
+        .catch(function() {
+            res.send(JSON.stringify({
+                status: 'error'
+            }));
+        })
+});
 
 
 app.post('/api/unwatch/:id', function(req, res){
@@ -66,7 +140,7 @@ app.post('/api/build/:id', function(req, res){
     }));
 });
 
-app.delete('/api/repository', function(req, res){
+app.delete('/api/repository/:id', function(req, res){
 
     res.send(JSON.stringify({
         status: 'success'
@@ -99,6 +173,24 @@ app.patch('/api/repository/:id', function(req, res){
     }, { $set: req.query.repo })
 
 });
+
+app.get('/api/branches', function(req, res){
+    
+    GithubClient()
+        .then(function(client) {
+
+        client.repo(req.query.name).branches(function(err, branches) {
+            
+                res.send(JSON.stringify({
+                    status: 'success',
+                    data: branches
+                }));
+            })
+        })
+
+
+});
+
 
 app.put('/api/repositories', function(req, res){
 
@@ -140,15 +232,14 @@ app.get('/api/repositories', function(req, res){
     })
 });
 
-console.log(__dirname + '/../client/')
-app.use('/', express.static(__dirname + '/../client/'));
+app.use('/', express.static(__dirname + '/../dist/'));
 
 app.get('/auth', function(req, res) {
     Github.auth.login(req.query.code, function(err, token) {
     
         GithubToken = token;
     });
-    res.redirect('/api/repositories')
+    res.redirect('/')
 });
 
 app.listen(3000);
