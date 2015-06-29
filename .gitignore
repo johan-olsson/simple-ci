@@ -1,6 +1,8 @@
 node_modules/
 client/node_modules/
 client/bower_components/
+client/styles/*.map
+client/styles/*.css
 server/node_modules/
 database/
 build/

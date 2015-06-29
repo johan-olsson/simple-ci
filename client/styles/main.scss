@@ -1,0 +1,45 @@
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+ul, ol { list-style: none; }
+
+$background-dark: rgb(0, 2, 37);
+$border-color: rgba(0, 2, 37, 0.3);
+
+$side-nav-with: 80px;
+$job-container-with: 230px;
+
+.side-nav {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: $side-nav-with;
+    background-color: $background-dark;
+}
+
+.padded-container {
+    padding: 30px;
+}
+
+.app-container {
+    margin-left: 80px;
+    .job-container {
+        position: absolute;
+        left: 80px;
+        top: 0;
+        height: 100%;
+        width: $job-container-with;
+        border-right: 1px solid $border-color;
+    }
+    .build-container {
+        margin-left: $job-container-with;
+        background: red;
+    }
+    .repository-list {
+        li {
+            padding: 10px;
+        }
+    }
+}
+

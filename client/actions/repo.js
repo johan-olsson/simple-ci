@@ -21,7 +21,7 @@ RxFlux.createAction(Constants.LIST_REPOS, function() {
             });
         
         })
-})
+})  
 
 RxFlux.createAction(Constants.REPO_BRANCHES, function(name) {
 
@@ -31,6 +31,18 @@ RxFlux.createAction(Constants.REPO_BRANCHES, function(name) {
         .end(function(err, response) {
     
             console.log(JSON.parse(response.text))
+        })
+})
+
+RxFlux.createAction(Constants.REPO_FETCH, function(full_name) {
+
+    request
+        .get('/api/repository/' + full_name)
+        .end(function(err, response) {
+    
+            JSON.parse(response.text).data.forEach(function(repo) {
+                RepoStore.upsert({id: repo.id}, repo);
+            });
         })
 })
 
@@ -56,16 +68,20 @@ RxFlux.createAction(Constants.REPO_BUILD, function(name) {
         })
 })
 
-RxFlux.createAction(Constants.REPO_BUILD, function(name, commit) {
 
-    console.log(name, commit)
+RxFlux.createAction(Constants.REPO_CLONE, function(name) {
     
     request
-        .get('/api/build')
+        .get('/api/clone')
         .query({ name: name })
-        .query({ commit: commit })
         .end(function(err, response) {
     
             console.log(JSON.parse(response.text))
         })
 })
+
+
+
+
+
+

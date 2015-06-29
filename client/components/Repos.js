@@ -3,8 +3,10 @@
 var RxFlux = require('rxflux');
 var React = require('react');
 
-
 var RepoStore = require('../stores/RepoStore');
+
+
+var RepoListitem = require('./RepoListitem');
 
 
 module.exports = React.createClass({
@@ -29,15 +31,20 @@ module.exports = React.createClass({
             });
         })
     },
+    
+    configure: function() {
+    
+        
+    },
 
     render: function() {
         
         var repos = this.state.repos.map(function(repo) {
-            return <li>{repo.full_name}</li>;
+            return <RepoListitem key={repo.id} model={repo} />
         })
 
         return (
-            <ul>
+            <ul className="repository-list padded-container">
                 {repos}
             </ul>
         );

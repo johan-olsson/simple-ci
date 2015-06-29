@@ -7,5 +7,7 @@ var RxFlux = require('rxflux')
     'LIST_REPOS',
     'REPO_STORE',
     'REPO_VIEW',
+    'REPO_FETSH',
+    'REPO_CLONE',
     'REPO_BUILD'
 )
