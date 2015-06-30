@@ -2,11 +2,13 @@
   "name": "server",
   "version": "1.0.0",
   "dependencies": {
+    "docker.io": "^0.9.8",
     "dockerode": "^2.1.5",
     "express": "^4.13.0",
     "express-session": "^1.11.3",
     "github": "^0.2.4",
     "http": "0.0.0",
+    "mongo-sync": "^2.0.0",
     "mongodb": "^2.0.35",
     "octonode": "^0.6.18",
     "path": "^0.11.14",
