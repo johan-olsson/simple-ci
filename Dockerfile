@@ -1,4 +1,4 @@
-FROM centos-node
+FROM centos
 
 
 ENV DATABASE mongodb://database:27015
